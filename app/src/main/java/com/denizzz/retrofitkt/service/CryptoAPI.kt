@@ -1,6 +1,7 @@
 package com.denizzz.retrofitkt.service
 
 import com.denizzz.retrofitkt.model.CryptoModel
+import io.reactivex.Observer
 import retrofit2.Call
 import retrofit2.http.GET
 

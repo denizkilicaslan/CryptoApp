@@ -14,12 +14,19 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity(),CryptoRecyclerViewAdapter.Listener {
+
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var recyclerViewAdapter: CryptoRecyclerViewAdapter
 
     private val BASEURL="https://raw.githubusercontent.com"
     private lateinit var cryptoModels: ArrayList<CryptoModel>
     private var job:Job?=null
+/*
+    //https://raw.githubusercontent.com/
+    // atilsamancioglu/K21-JSONDataSet/master/crypto.json
+    // base kısmı retrofıt ın ıcıne uzantılar kısmı ınterface yazılıyomus
+  */
 
     val exceptionHandler= CoroutineExceptionHandler { coroutineContext, throwable ->
         println("Error :${throwable.localizedMessage}")
@@ -34,12 +41,6 @@ class MainActivity : AppCompatActivity(),CryptoRecyclerViewAdapter.Listener {
         val layoutManager:RecyclerView.LayoutManager=LinearLayoutManager(this)
         binding.myRecyclerView.layoutManager=layoutManager
 
-
-
-        //https://raw.githubusercontent.com/
-    // atilsamancioglu/K21-JSONDataSet/master/crypto.json
-
-        // base kısmı retrofıt ın ıcıne uzantılar kısmı ınterface yazılıyomus
 
         loadData()
 

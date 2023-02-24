@@ -5,14 +5,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import com.denizzz.retrofitkt.adapter.CryptoRecyclerViewAdapter
 import com.denizzz.retrofitkt.databinding.ActivityMainBinding
 import com.denizzz.retrofitkt.model.CryptoModel
 import com.denizzz.retrofitkt.service.CryptoAPI
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -20,9 +17,13 @@ class MainActivity : AppCompatActivity(),CryptoRecyclerViewAdapter.Listener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var recyclerViewAdapter: CryptoRecyclerViewAdapter
 
-    private val BASE_URL="https://raw.githubusercontent.com"
+    private val BASEURL="https://raw.githubusercontent.com"
     private lateinit var cryptoModels: ArrayList<CryptoModel>
+    private var job:Job?=null
 
+    val exceptionHandler= CoroutineExceptionHandler { coroutineContext, throwable ->
+        println("Error :${throwable.localizedMessage}")
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -48,10 +49,31 @@ class MainActivity : AppCompatActivity(),CryptoRecyclerViewAdapter.Listener {
     fun loadData(){
 
         val retrofit=Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BASEURL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+            .create(CryptoAPI::class.java)
 
+        job= CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
+            val response=retrofit.getData()
+
+            withContext(Dispatchers.Main){
+                if (response.isSuccessful){
+
+                    response.body()?.let {
+                        cryptoModels= ArrayList(it)
+                        cryptoModels?.let {
+                            recyclerViewAdapter=CryptoRecyclerViewAdapter(it,this@MainActivity)
+                            binding.myRecyclerView.adapter=recyclerViewAdapter
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+/*
         //service apı ile retrofıt ı bırbırıne bagla
         val service=retrofit.create(CryptoAPI::class.java)
         val call=service.getData()
@@ -88,10 +110,15 @@ class MainActivity : AppCompatActivity(),CryptoRecyclerViewAdapter.Listener {
             }
 
         })
-
+*/
     }
 
     override fun onItemClick(cryptoModel: CryptoModel) {
         Toast.makeText(this@MainActivity,"${cryptoModel.currency}",Toast.LENGTH_LONG).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job?.cancel()
     }
 }
